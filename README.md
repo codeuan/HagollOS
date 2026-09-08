@@ -1,2 +1,2 @@
 # HagollOS
-HagollOS is an experimental Linux based RISC-V operating system.
+HagollOS is an experimental x86-64 operating system.
