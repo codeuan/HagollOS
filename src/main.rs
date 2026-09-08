@@ -3,8 +3,9 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"] 
+#![feature(abi_x86_interrupt)]
 mod vga_buffer;
-
+mod interrupts;
 // Rebuild with: cargo bootimage
 // Run with:
 // qemu-system-x86_64 -display gtk -drive format=raw,file=target/x86_64-hagoll_os/debug/bootimage-hagoll_os.bin
@@ -17,8 +18,14 @@ use core::panic::PanicInfo;
 
 #[unsafe(no_mangle)] 
 pub extern "C" fn _start() -> ! {
-    println!("Hello again, some numbers: {} {}", 42, 1.337);
-    println!("This works.");
+    println!("Starting HagollOS...");
+
+    interrupts::init_idt();
+
+    //deliberately trigger breakpoint exception 3
+    x86_64::instructions::interrupts::int3();
+
+    println!("Execution continued after the exception.");
 
     #[cfg(test)]
     test_main();
