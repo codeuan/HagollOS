@@ -13,6 +13,8 @@ use bootloader::bootinfo::MemoryRegionType;
 // qemu-system-x86_64 -display gtk -drive format=raw,file=target/x86_64-hagoll_os/debug/bootimage-hagoll_os.bin
 //Run test with: 
 // cargo test --target x86_64-hagoll_os.json
+//Run exclusively in terminal with:
+//qemu-system-x86_64 -accel tcg -display curses -drive format=raw,file=target/x86_64-hagoll_os/debug/bootimage-hagoll_os.bin
 //If run failed, clean project and rebuild with:
 //  cargo clean
 
