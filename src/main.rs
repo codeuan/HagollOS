@@ -6,6 +6,8 @@
 #![feature(abi_x86_interrupt)]
 mod vga_buffer;
 mod interrupts;
+use bootloader::BootInfo;
+use bootloader::bootinfo::MemoryRegionType;
 // Rebuild with: cargo bootimage
 // Run with:
 // qemu-system-x86_64 -display gtk -drive format=raw,file=target/x86_64-hagoll_os/debug/bootimage-hagoll_os.bin
@@ -16,21 +18,39 @@ mod interrupts;
 
 use core::panic::PanicInfo;
 
-#[unsafe(no_mangle)] 
-pub extern "C" fn _start() -> ! {
+#[unsafe(no_mangle)]
+pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
     println!("Starting HagollOS...");
 
     interrupts::init_idt();
 
-    //deliberately trigger breakpoint exception 3
-    x86_64::instructions::interrupts::int3();
+    println!("Physical memory map:");
+    let mut usable_bytes = 0u64;
 
-    println!("Execution continued after the exception.");
+    for region in boot_info.memory_map.iter() {
+        let start = region.range.start_addr();
+        let end = region.range.end_addr();
+
+        println!(
+            "{:#x}..{:#x}: {:?}",
+            start,
+            end,
+            region.region_type
+        );
+
+        if region.region_type == MemoryRegionType::Usable {
+            usable_bytes += end - start;
+        }
+    }
+
+    println!("Usable RAM: {} KiB", usable_bytes / 1024);
 
     #[cfg(test)]
     test_main();
 
-    loop {}
+    loop {
+        x86_64::instructions::hlt();
+    }
 }
 
 #[panic_handler] //handles panic. (duh)
