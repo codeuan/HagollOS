@@ -6,6 +6,7 @@
 #![feature(abi_x86_interrupt)]
 mod vga_buffer;
 mod interrupts;
+mod gdt;
 use bootloader::BootInfo;
 use bootloader::bootinfo::MemoryRegionType;
 // Rebuild with: cargo bootimage
@@ -25,7 +26,7 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
     println!("Starting HagollOS...");
 
     interrupts::init_idt();
-
+    gdt::init();
     println!("Physical memory map:");
     let mut usable_bytes = 0u64;
 
