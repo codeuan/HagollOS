@@ -4,6 +4,11 @@ use x86_64::structures::idt::{
     InterruptStackFrame,
 };
 use crate::gdt;
+use pic8259::ChainedPics;
+use spin::Mutex;
+
+pub const PIC_1_OFFSET: u8 = 32;
+pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
 
 lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
@@ -53,4 +58,21 @@ extern "x86-interrupt" fn double_fault_handler(
     _error_code: u64,
 ) -> ! {
     panic!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
+}
+
+//PIC - Handles interrupts from hardware.
+pub static PICS: Mutex<ChainedPics> = Mutex::new(unsafe {
+    ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) //wrap in mutex to protect from contention.
+});
+
+//initialise PIC hardware.
+pub fn init_pics() {
+    x86_64::instructions::interrupts::without_interrupts(|| {
+        let mut pics = PICS.lock();
+
+        unsafe {
+            pics.initialize();
+            pics.write_masks(0xff, 0xff);
+        }
+    });
 }
