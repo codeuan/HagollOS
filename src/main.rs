@@ -27,7 +27,10 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
 
     interrupts::init_idt();
     gdt::init();
+    interrupts::init_pics();
     println!("Physical memory map:");
+
+    
     let mut usable_bytes = 0u64;
 
     for region in boot_info.memory_map.iter() {
