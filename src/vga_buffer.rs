@@ -147,8 +147,10 @@ macro_rules! println {
 
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write; 
+    use core::fmt::Write;
 
-    WRITER.lock().write_fmt(args).unwrap();
+    x86_64::instructions::interrupts::without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    });
 }
 //mutex stands for mutual exclusion, and it is a synchronization primitive that can be used to protect shared data from being simultaneously accessed by multiple threads. In this case, we are using a mutex to protect the WRITER instance, which is a shared resource that can be accessed by multiple threads. The lock() method is used to acquire the mutex, and the write_fmt() method is used to write the formatted arguments to the WRITER instance. The unwrap() method is used to handle any errors that may occur during the write operation.
