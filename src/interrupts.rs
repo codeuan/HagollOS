@@ -64,17 +64,6 @@ extern "x86-interrupt" fn double_fault_handler(
 }
 
 
-extern "x86-interrupt" fn keyboard_handler(
-    _stack_frame: InterruptStackFrame,
-) {
-    let mut port = Port::<u8>::new(0x60);
-    let _scancode = unsafe { port.read() };
-
-    unsafe {
-        PICS.lock().notify_end_of_interrupt(KEYBOARD_VECTOR);
-    }
-}
-
 
 //PIC - Handles interrupts from hardware.
 pub static PICS: Mutex<ChainedPics> = Mutex::new(unsafe {
@@ -98,12 +87,14 @@ use pc_keyboard::{
     layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1,
 };
 
-static ref KEYBOARD: Mutex<Keyboard<layouts::Uk105Key, ScancodeSet1>> =
-    Mutex::new(Keyboard::new(
-        ScancodeSet1::new(),
-        layouts::Uk105Key,
-        HandleControl::Ignore,
-    ));
+lazy_static! {
+    static ref KEYBOARD: Mutex<Keyboard<layouts::Uk105Key, ScancodeSet1>> =
+        Mutex::new(Keyboard::new(
+            ScancodeSet1::new(),
+            layouts::Uk105Key,
+            HandleControl::Ignore,
+        ));
+}
 
 extern "x86-interrupt" fn keyboard_handler(
     _stack_frame: InterruptStackFrame,
